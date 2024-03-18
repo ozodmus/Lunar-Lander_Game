@@ -1,8 +1,8 @@
 #include <stdio.h>
+#include "keyboard.h"
 
-int main(void){
 
-    printf("Hello World!");
+int main() {
+    keyboard();
 
-    return 0;
 }
