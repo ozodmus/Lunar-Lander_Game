@@ -4854,8 +4854,7 @@ int main(void){
     /* Read location of the pixel buffer from the pixel buffer controller */
     pixel_buffer_start = *pixel_ctrl_ptr;
     
-	while (1)
-    {
+	while (1){
         clear_screen();
         
         wait_for_vsync(); // swap front and back buffers on VGA vertical sync
