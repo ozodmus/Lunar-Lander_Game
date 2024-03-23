@@ -93,10 +93,10 @@ int main() {
             //call newSpeed
 
         }
-        else if (input == 2){       //rotate right
+        else if (input == 2){       //rotate right angle - 0.524 rads
 
         }
-        else if (input == 3){       //rotate left
+        else if (input == 3){       //rotate left 
 
         }
     }
