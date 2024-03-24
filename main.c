@@ -5,7 +5,7 @@
 //////////// function declarations //////////////
 void drawBox(int x, int y);
 void plot_pixel(int x, int y, short int line_color);
-void newSpeed(double angle);
+double newSpeed(double angle);
 int keyboard();
 bool gameOver(int x, int y);
 
@@ -37,7 +37,7 @@ void plot_pixel(int x, int y, short int line_color){
 }
 
 
-void newSpeed(double boxAngle){}
+double newSpeed(double boxAngle){}
 
 //check if row of pixels below box are white
 //restart game?
@@ -82,10 +82,15 @@ int keyboard(){
 //////////// MAIN FUNCTION //////////////
 
 int main() {    
+    int x, y;
 
     while (1){
         int input = keyboard();
         if (gameOver); // game over screen?
+
+        //erase box, identify new location, draw box
+        //current location plus speed * 1/60 (round to nearest int)
+        
 
         if (input == 1){    
             //up key
