@@ -8,6 +8,8 @@ void plot_pixel(int x, int y, short int line_color);
 double newSpeed(double angle);
 int keyboard();
 bool gameOver(int x, int y);
+void drawRover(int x, int y);
+void drawFlame(int x, int y);
 
 
 //////////// global variables //////////////
@@ -28,6 +30,10 @@ void drawBox(int x, int y){
             }
         }
     }
+}
+
+void drawRover(int x, int y){
+    
 }
 
 void plot_pixel(int x, int y, short int line_color){
