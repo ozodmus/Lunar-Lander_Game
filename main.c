@@ -8,12 +8,15 @@ void plot_pixel(int x, int y, short int line_color);
 double newSpeed(double angle);
 int keyboard();
 bool gameOver(int x, int y);
+void drawFlame(double boxAngle, int x, int y);
+
 
 
 //////////// global variables //////////////
-int pixel_buffer_start; 
+int pixel_buffer1;
+int pixel_buffer2; 
 volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
-double angle = 180;
+double angle = 3.1415;
 int horizontal_speed = 82;
 int vertical_speed = 0; //increment by 6 every second
 
@@ -30,9 +33,15 @@ void drawBox(int x, int y){
     }
 }
 
+void drawFlame(double boxAngle, int x, int y){
+    
+
+}
+
+
 void plot_pixel(int x, int y, short int line_color){
     volatile short int *one_pixel_address;
-    one_pixel_address = pixel_buffer_start + (y << 10) + (x << 1);
+    one_pixel_address = pixel_buffer1 + (y << 10) + (x << 1);
     *one_pixel_address = line_color;
 }
 
@@ -43,12 +52,20 @@ double newSpeed(double boxAngle){}
 //restart game?
 bool gameOver(int x, int y){
     bool result = false;
+    int count = 0;
 
     volatile short int *one_pixel_address;
     y += 2;
-    one_pixel_address = pixel_buffer_start + (y << 10) + (x << 1);
-    if (*one_pixel_address = 0xffff){
-        result = true;
+    x -= 1;
+    for (int i = 0; i < 3; i++){
+        one_pixel_address = pixel_buffer1 + (y << 10) + (x << 1);
+        x++;
+        if (*one_pixel_address = 0xffff){
+            count++;
+            if (count == 3){
+                result = true;
+            }
+        }
     }
 
     return result;
@@ -91,6 +108,7 @@ int main() {
         //erase box, identify new location, draw box
         //current location plus speed * 1/60 (round to nearest int)
         
+        
 
         if (input == 1){    
             //up key
@@ -108,6 +126,10 @@ int main() {
 
     return 0;
 }
+
+
+
+
 
 
 
