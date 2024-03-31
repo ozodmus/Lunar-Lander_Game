@@ -8,9 +8,8 @@ void plot_pixel(int x, int y, short int line_color);
 double newSpeed(double angle);
 int keyboard();
 bool gameOver(int x, int y);
+void drawRover(int x, int y);
 void drawFlame(double boxAngle, int x, int y);
-
-
 
 //////////// global variables //////////////
 int pixel_buffer1;
@@ -38,6 +37,10 @@ void drawFlame(double boxAngle, int x, int y){
 
 }
 
+
+void drawRover(int x, int y){
+    
+}
 
 void plot_pixel(int x, int y, short int line_color){
     volatile short int *one_pixel_address;
@@ -99,29 +102,29 @@ int keyboard(){
 //////////// MAIN FUNCTION //////////////
 
 int main() {    
-    int x, y;
+    int x = 0, y = 0;
+        
+
 
     while (1){
         int input = keyboard();
-        if (gameOver); // game over screen?
+        if (gameOver); 
 
         //erase box, identify new location, draw box
         //current location plus speed * 1/60 (round to nearest int)
         
         
 
-        if (input == 1){    
+        if (input == 1); 
             //up key
             //calculate angle (0 to 180) => starts at 180
             //call newSpeed
 
-        }
-        else if (input == 2){       //rotate right angle - 0.524 rads
+        
+        else if (input == 2);  //rotate right angle - 0.524 rads
 
-        }
-        else if (input == 3){       //rotate left 
-
-        }
+    
+        else if (input == 3);      //rotate left 
     }
 
     return 0;
