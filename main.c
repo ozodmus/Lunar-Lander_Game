@@ -1,18 +1,18 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdbool.h>
+#include "sound_data.c"
+
+#define SPEED 5
 
 //////////// global variables //////////////
 double angle = 3.15;
 int x = 0;
 int y = 0;
-int horizontal_speed = 2;
-int vertical_speed = 2; //increment by 6 every second
 volatile int pixel_buffer_start; // global variable
 short int Buffer1[240][512]; // 240 rows, 512 (320 + padding) columns   
 short int Buffer2[240][512];
-double box_position[2];
-double box_dir[2];
+rover_position[4];
 
 //////////// function declarations //////////////
 void wait_for_vsync();
@@ -144,11 +144,20 @@ void swap(int* a, int* b){
 	*b = temp;
 }
 
-void newLocation(int x0, int y0){
-	vertical_speed += 6/60;
-	horizontal_speed += 5/60;
-	y += vertical_speed;
-	x += horizontal_speed;
+void newLocation(){
+    // Update box positions according to their movement speeds
+    rover_position[0] += rover_position[2];
+    rover_position[1] += rover_position[3];
+
+    // Check for collisions with the screen boundary and reverse direction if needed
+    if(rover_position[0] + 1 > 320 || rover_position[0] - 1 < 0) {
+        rover_position[2] = -rover_position[2]; // Reverse X direction
+        rover_position[0] += rover_position[2]; // Adjust position after direction change
+    }
+    if(rover_position[1] + 1 > 240 || rover_position[1] - 1 < 0) {
+        rover_position[3] = -rover_position[3]; // Reverse Y direction
+        rover_position[1] += rover_position[3]; // Adjust position after direction change
+    }
 }
 
 void draw_line(int x1, int y1, int x2, int y2, short int line_color){
@@ -194,7 +203,14 @@ void draw_line(int x1, int y1, int x2, int y2, short int line_color){
 }
 //////////// MAIN FUNCTION //////////////
 
-int main() {   
+int main() {  
+	//Initializations
+	rover_position[0] = x;
+	rover_position[1] = y;
+	rover_position[2] = SPEED;
+	rover_position[3] = SPEED;
+
+	// Double Buffer Set Up
     volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; 
     pixel_buffer_start = *pixel_ctrl_ptr;
@@ -204,11 +220,10 @@ int main() {
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
     clear_screen(); 
 
-
     while (1){
-		newLocation(x, y);
-		drawBox(x, y);
-		
+		clear_screen();
+		newLocation();
+		drawBox(rover_position[0], rover_position[1]);
 		
         int input = keyboard();
 
@@ -238,7 +253,6 @@ int main() {
 		
 		wait_for_vsync();
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-		clear_screen();
     }
 
     return 0;
