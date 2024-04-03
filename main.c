@@ -26,15 +26,35 @@ void drawRover(int x0, int y0);
 void drawFlame(double boxAngle, int x0, int y0);
 
 //////////// helper functions //////////////
-void wait_for_vsync(){
-    volatile int * pixel_ctrl_ptr = (int *) 0xff203020; // base address
-    int status;
-    *pixel_ctrl_ptr = 1; 
-    status = *(pixel_ctrl_ptr + 3);
 
-    while ((status & 0x01) != 0) {
+void project_background(){
+    draw_line(0, 200, 60, 180, 0xffff);
+	draw_line(60, 180, 70, 180, 0xffff);
+	draw_line(70, 180, 110, 220, 0xffff);
+	draw_line(110, 220, 125, 220, 0xffff);
+	draw_line(125, 220, 145, 200, 0xffff);
+	draw_line(145, 200, 155, 200, 0xffff);
+	draw_line(155, 200, 170, 215, 0xffff);
+	draw_line(170, 215, 176, 215, 0xffff);
+	draw_line(176, 215, 185, 222, 0xffff);
+	draw_line(185, 222, 208, 203, 0xffff);
+	draw_line(208, 203, 250,230,0xffff);
+	draw_line(250,230, 285, 195,0xffff);
+	draw_line(285,195, 300, 195,0xffff);
+	draw_line(300,195, 319, 176, 0xffff);
+}
+
+
+void wait_for_vsync(){
+    volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+    int status;
+
+    *pixel_ctrl_ptr = 1;
+    status = *(pixel_ctrl_ptr + 3);
+    while ((status & 0x01) != 0)
+    {
         status = *(pixel_ctrl_ptr + 3);
-    } 
+    }
 }
 
 void clear_screen(){
@@ -43,6 +63,7 @@ void clear_screen(){
 			plot_pixel(ind1,ind2,0);
 		}
 	}
+	project_background();
 }
 
 void drawBox(int x0, int y0){
@@ -117,6 +138,12 @@ int keyboard(){
 	return -1;
 }
 
+void swap(int* a, int* b){
+	int temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
 void newLocation(int x0, int y0){
 	vertical_speed += 6/60;
 	horizontal_speed += 5/60;
@@ -124,8 +151,47 @@ void newLocation(int x0, int y0){
 	x += horizontal_speed;
 }
 
-//void eraseBox(){}
-
+void draw_line(int x1, int y1, int x2, int y2, short int line_color){
+	bool is_steep;
+	int deltax = x2 - x1;
+	int deltay = abs(y2 - y1);
+	int error = -(deltax/2);
+	int y = y1;
+	int y_step;
+	
+	if(abs(y2 - y1) > abs(x2 - x1)){
+		is_steep = 1;
+	}else{
+		is_steep = 0;
+	}
+	if(is_steep == 1){
+		swap(&x1,&y1);
+		swap(&x2,&y2);
+	}
+	if(x1 > x2){
+		swap(&x1,&x2);
+		swap(&y1,&y2);
+	}
+	if(y1 < y2){
+		y_step = 1;
+	}else{
+		y_step = -1;
+	}
+	
+	for(int x = x1; x <= x2; x++){
+		if(is_steep == 1){
+			plot_pixel(y,x,line_color);
+		}else{
+			plot_pixel(x,y,line_color);
+		}
+		
+		error = error + deltay;
+		if(error >= 0){
+			y = y + y_step;
+			error = error - deltax;
+		}
+	}
+}
 //////////// MAIN FUNCTION //////////////
 
 int main() {   
@@ -133,16 +199,16 @@ int main() {
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; 
     pixel_buffer_start = *pixel_ctrl_ptr;
     clear_screen();
+	wait_for_vsync();
     *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
     clear_screen(); 
 
 
     while (1){
-		clear_screen();
 		newLocation(x, y);
 		drawBox(x, y);
-		wait_for_vsync();
+		
 		
         int input = keyboard();
 
@@ -170,7 +236,9 @@ int main() {
 			}	
 		}
 		
+		wait_for_vsync();
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+		clear_screen();
     }
 
     return 0;
