@@ -108,6 +108,8 @@ void drawFlame(int x0, int y0){
 
 
 void drawRover(int x, int y){
+	plot_pixel(x,y, 0xbfff); //REF
+	
 	//bottom left
 	plot_pixel(x+1, y+11, 0xFFFF);
 	plot_pixel(x+3, y+11, 0xFFFF);
