@@ -79,7 +79,65 @@ void drawBox(int x0, int y0){
 // void drawFlame(double boxAngle, int x, int y){}
 
 
-// void drawRover(int x, int y){}
+void drawRover(int x, int y){
+	if (y > 12 && x > 10){
+		//bottom left
+		plot_pixel(x-4, y, 0xFFFF);
+		plot_pixel(x-2, y, 0xFFFF);
+		plot_pixel(x-4, y-1, 0xFFFF);
+		plot_pixel(x-3, y-1, 0xFFFF);
+		plot_pixel(x-2, y-1, 0xFFFF);
+		plot_pixel(x-3, y-2, 0xFFFF);
+		plot_pixel(x-3, y-3, 0xFFFF);
+		
+		//bottom right
+		plot_pixel(x+4, y, 0xFFFF);
+		plot_pixel(x+2, y, 0xFFFF);
+		plot_pixel(x+4, y-1, 0xFFFF);
+		plot_pixel(x+3, y-1, 0xFFFF);
+		plot_pixel(x+2, y-1, 0xFFFF);
+		plot_pixel(x+3, y-2, 0xFFFF);
+		plot_pixel(x+3, y-3, 0xFFFF);
+		
+		//middle
+		plot_pixel(x+1, y-2, 0xFFFF);
+		plot_pixel(x, y-2, 0xFFFF);
+		plot_pixel(x-1, y-2, 0xFFFF);
+		plot_pixel(x+1, y-3, 0xFFFF);
+		plot_pixel(x, y-3, 0xFFFF);
+		plot_pixel(x-1, y-3, 0xFFFF);
+		
+		//top left
+		plot_pixel(x-2, y-3, 0xFFFF);
+		plot_pixel(x-3, y-3, 0xFFFF);
+		plot_pixel(x-2, y-4, 0xFFFF);
+		plot_pixel(x-2, y-5, 0xFFFF);
+		plot_pixel(x-3, y-5, 0xFFFF);
+		
+		//top right
+		plot_pixel(x+2, y-3, 0xFFFF);
+		plot_pixel(x+3, y-3, 0xFFFF);
+		plot_pixel(x+2, y-4, 0xFFFF);
+		plot_pixel(x+2, y-5, 0xFFFF);
+		plot_pixel(x+3, y-5, 0xFFFF);
+		
+		//top
+		plot_pixel(x, y-6, 0xFFFF);
+		plot_pixel(x-1, y-6, 0xFFFF);
+		plot_pixel(x+1, y-6, 0xFFFF);
+		plot_pixel(x, y-7, 0xFFFF);
+		plot_pixel(x-1, y-7, 0xFFFF);
+		plot_pixel(x+1, y-7, 0xFFFF);
+		plot_pixel(x, y-8, 0xFFFF);
+		plot_pixel(x, y-8, 0xFFFF);
+		plot_pixel(x, y-8, 0xFFFF);
+		plot_pixel(x, y-9, 0xFFFF);
+		plot_pixel(x, y-9, 0xFFFF);
+		plot_pixel(x, y-9, 0xFFFF);
+		
+		plot_pixel(x, y-11, 0xFFFF);
+	}
+}
 
 void plot_pixel(int x0, int y0, short int line_color){
     volatile short int *one_pixel_address;
@@ -223,7 +281,7 @@ int main() {
     while (1){
 		clear_screen();
 		newLocation();
-		drawBox(rover_position[0], rover_position[1]);
+		drawRover(rover_position[0], rover_position[1]);
 		
         int input = keyboard();
 
