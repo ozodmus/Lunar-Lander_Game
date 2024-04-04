@@ -8,13 +8,10 @@
 double angle = 3.15;
 int x = 0;
 int y = 0;
-int horizontal_speed = 2;
-int vertical_speed = 2; //increment by 6 every second
 volatile int pixel_buffer_start; // global variable
 short int Buffer1[240][512]; // 240 rows, 512 (320 + padding) columns   
 short int Buffer2[240][512];
-double box_position[2];
-double box_dir[2];
+rover_position[4];
 
 //////////// function declarations //////////////
 void wait_for_vsync();
@@ -25,7 +22,7 @@ double newSpeed(double angle);
 int keyboard();
 bool gameOver(int x0, int y0);
 void drawRover(int x0, int y0);
-void drawFlame(int x0, int y0);
+void drawFlame(double boxAngle, int x0, int y0);
 
 //////////// helper functions //////////////
 
@@ -66,16 +63,6 @@ void clear_screen(){
 		}
 	}
 	project_background();
-}
-
-void drawBox(int x0, int y0){
-	for (int i = (x0-3); i < x0+4; i++){
-		for (int j = (y0-3); j < y0+4; j++){
-			// i = i*cos(angle) - j*sin(angle);
-			// j = i*sin(angle) + j*cos(angle);
-			plot_pixel(i,j,0xFFFF);
-		}
-    }
 }
 
 void drawFlame(int x0, int y0){
@@ -227,11 +214,20 @@ void swap(int* a, int* b){
 	*b = temp;
 }
 
-void newLocation(int x0, int y0){
-	vertical_speed += 6/60;
-	horizontal_speed += 5/60;
-	y += vertical_speed;
-	x += horizontal_speed;
+void newLocation(){
+    // Update box positions according to their movement speeds
+    rover_position[0] += rover_position[2];
+    rover_position[1] += rover_position[3];
+
+    // Check for collisions with the screen boundary and reverse direction if needed
+    if(rover_position[0] + 1 > 320 || rover_position[0] - 1 < 0) {
+        rover_position[2] = -rover_position[2]; // Reverse X direction
+        rover_position[0] += rover_position[2]; // Adjust position after direction change
+    }
+    if(rover_position[1] + 1 > 240 || rover_position[1] - 1 < 0) {
+        rover_position[3] = -rover_position[3]; // Reverse Y direction
+        rover_position[1] += rover_position[3]; // Adjust position after direction change
+    }
 }
 
 void draw_line(int x1, int y1, int x2, int y2, short int line_color){
@@ -277,7 +273,14 @@ void draw_line(int x1, int y1, int x2, int y2, short int line_color){
 }
 //////////// MAIN FUNCTION //////////////
 
-int main() {   
+int main() {  
+	//Initializations
+	rover_position[0] = x;
+	rover_position[1] = y;
+	rover_position[2] = SPEED;
+	rover_position[3] = SPEED;
+
+	// Double Buffer Set Up
     volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; 
     pixel_buffer_start = *pixel_ctrl_ptr;
@@ -287,12 +290,10 @@ int main() {
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
     clear_screen(); 
 
-
     while (1){
-		newLocation(x, y);
-		drawRover(x, y);
-		drawFlame(x, y);
-		
+		clear_screen();
+		newLocation();
+		drawRover(rover_position[0], rover_position[1]);
 		
         int input = keyboard();
 
@@ -324,7 +325,6 @@ int main() {
 		}
 		wait_for_vsync();
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1);
-		clear_screen();
     }
 
     return 0;

@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/ozodm/OneDrive-UniversityofToronto/Desktop/Year 2.2/ECE243/Project/ECE243-Project---Lunar-Lander",
-      "program": "c:/Users/ozodm/OneDrive-UniversityofToronto/Desktop/Year 2.2/ECE243/Project/ECE243-Project---Lunar-Lander/build/Debug/outDebug",
+      "cwd": "c:/Winter 2023 Labs/ECE243/Labs/Project/ECE243-Project---Lunar-Lander",
+      "program": "c:/Winter 2023 Labs/ECE243/Labs/Project/ECE243-Project---Lunar-Lander/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
