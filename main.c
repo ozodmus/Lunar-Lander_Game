@@ -11,7 +11,7 @@ int y = 0;
 volatile int pixel_buffer_start; // global variable
 short int Buffer1[240][512]; // 240 rows, 512 (320 + padding) columns   
 short int Buffer2[240][512];
-rover_position[4];
+double rover_position[4];
 
 //////////// function declarations //////////////
 void wait_for_vsync();
@@ -22,7 +22,9 @@ double newSpeed(double angle);
 int keyboard();
 bool gameOver(int x0, int y0);
 void drawRover(int x0, int y0);
-void drawFlame(double boxAngle, int x0, int y0);
+void drawFlame(int x0, int y0);
+void draw_line(int x1, int y1, int x2, int y2, short int line_color);
+
 
 //////////// helper functions //////////////
 
@@ -96,7 +98,7 @@ void drawFlame(int x0, int y0){
 }
 
 
-void drawRover(int x, int y){
+void drawRover(int x0, int y0){
 	plot_pixel(x,y, 0xbfff); //REF
 	
 	//bottom left
@@ -294,6 +296,7 @@ int main() {
 		clear_screen();
 		newLocation();
 		drawRover(rover_position[0], rover_position[1]);
+		drawFlame(rover_position[0], rover_position[1]);
 		
         int input = keyboard();
 
