@@ -11,7 +11,7 @@ int y = 0;
 volatile int pixel_buffer_start; // global variable
 short int Buffer1[240][512]; // 240 rows, 512 (320 + padding) columns   
 short int Buffer2[240][512];
-double rover_position[4];
+rover_position[4];
 
 //////////// function declarations //////////////
 void wait_for_vsync();
@@ -24,7 +24,6 @@ bool gameOver(int x0, int y0);
 void drawRover(int x0, int y0);
 void drawFlame(int x0, int y0);
 void draw_line(int x1, int y1, int x2, int y2, short int line_color);
-
 
 //////////// helper functions //////////////
 
@@ -69,88 +68,88 @@ void clear_screen(){
 
 void drawFlame(int x0, int y0){
 	//left
-	plot_pixel(x, y+12, 0xfbc0);
-	plot_pixel(x+1, y+13, 0xfbc0);
-	plot_pixel(x+2, y+14, 0xfbc0);
-	plot_pixel(x+3, y+13, 0xfbc0);
-	plot_pixel(x+4, y+12, 0xfbc0);
+	plot_pixel(x0, y0+12, 0xfbc0);
+	plot_pixel(x0+1, y0+13, 0xfbc0);
+	plot_pixel(x0+2, y0+14, 0xfbc0);
+	plot_pixel(x0+3, y0+13, 0xfbc0);
+	plot_pixel(x0+4, y0+12, 0xfbc0);
 	
 	//right
-	plot_pixel(x+10, y+12, 0xfbc0);
-	plot_pixel(x+9, y+13, 0xfbc0);
-	plot_pixel(x+8, y+14, 0xfbc0);
-	plot_pixel(x+7, y+13, 0xfbc0);
-	plot_pixel(x+6, y+12, 0xfbc0);
+	plot_pixel(x0+10, y0+12, 0xfbc0);
+	plot_pixel(x0+9, y0+13, 0xfbc0);
+	plot_pixel(x0+8, y0+14, 0xfbc0);
+	plot_pixel(x0+7, y0+13, 0xfbc0);
+	plot_pixel(x0+6, y0+12, 0xfbc0);
 	
 	//yellow left
-	plot_pixel(x+2, y+11, 0xfec0);
-	plot_pixel(x+2, y+12, 0xfec0);
-	plot_pixel(x+3, y+12, 0xfec0);
-	plot_pixel(x+1, y+12, 0xfec0);
-	plot_pixel(x+2, y+13, 0xfec0);
+	plot_pixel(x0+2, y0+11, 0xfec0);
+	plot_pixel(x0+2, y0+12, 0xfec0);
+	plot_pixel(x0+3, y0+12, 0xfec0);
+	plot_pixel(x0+1, y0+12, 0xfec0);
+	plot_pixel(x0+2, y0+13, 0xfec0);
 	
 	//yellow right
-	plot_pixel(x+8, y+11, 0xfec0);
-	plot_pixel(x+8, y+12, 0xfec0);
-	plot_pixel(x+9, y+12, 0xfec0);
-	plot_pixel(x+7, y+12, 0xfec0);
-	plot_pixel(x+8, y+13, 0xfec0);	
+	plot_pixel(x0+8, y0+11, 0xfec0);
+	plot_pixel(x0+8, y0+12, 0xfec0);
+	plot_pixel(x0+9, y0+12, 0xfec0);
+	plot_pixel(x0+7, y0+12, 0xfec0);
+	plot_pixel(x0+8, y0+13, 0xfec0);	
 }
 
 
 void drawRover(int x0, int y0){
-	plot_pixel(x,y, 0xbfff); //REF
+	plot_pixel(x0, y0, 0xbfff); //REF
 	
 	//bottom left
-	plot_pixel(x+1, y+11, 0xFFFF);
-	plot_pixel(x+3, y+11, 0xFFFF);
-	plot_pixel(x+1, y+10, 0xFFFF);
-	plot_pixel(x+2, y+10, 0xFFFF);
-	plot_pixel(x+3, y+10, 0xFFFF);
-	plot_pixel(x+2, y+9, 0xFFFF);
-	plot_pixel(x+2, y+8, 0xFFFF);
+	plot_pixel(x0+1, y0+11, 0xFFFF);
+	plot_pixel(x0+3, y0+11, 0xFFFF);
+	plot_pixel(x0+1, y0+10, 0xFFFF);
+	plot_pixel(x0+2, y0+10, 0xFFFF);
+	plot_pixel(x0+3, y0+10, 0xFFFF);
+	plot_pixel(x0+2, y0+9, 0xFFFF);
+	plot_pixel(x0+2, y0+8, 0xFFFF);
 
 	//bottom right
-	plot_pixel(x+9, y+11, 0xFFFF);
-	plot_pixel(x+7, y+11, 0xFFFF);
-	plot_pixel(x+9, y+10, 0xFFFF);
-	plot_pixel(x+8, y+10, 0xFFFF);
-	plot_pixel(x+7, y+10, 0xFFFF);
-	plot_pixel(x+8, y+9, 0xFFFF);
-	plot_pixel(x+8, y+8, 0xFFFF);
+	plot_pixel(x0+9, y0+11, 0xFFFF);
+	plot_pixel(x0+7, y0+11, 0xFFFF);
+	plot_pixel(x0+9, y0+10, 0xFFFF);
+	plot_pixel(x0+8, y0+10, 0xFFFF);
+	plot_pixel(x0+7, y0+10, 0xFFFF);
+	plot_pixel(x0+8, y0+9, 0xFFFF);
+	plot_pixel(x0+8, y0+8, 0xFFFF);
 
 	//middle
-	plot_pixel(x+6, y+9, 0xFFFF);
-	plot_pixel(x+5, y+9, 0xFFFF);
-	plot_pixel(x+4, y+9, 0xFFFF);
-	plot_pixel(x+6, y+8, 0xFFFF);
-	plot_pixel(x+5, y+8, 0xFFFF);
-	plot_pixel(x+4, y+8, 0xFFFF);
+	plot_pixel(x0+6, y0+9, 0xFFFF);
+	plot_pixel(x0+5, y0+9, 0xFFFF);
+	plot_pixel(x0+4, y0+9, 0xFFFF);
+	plot_pixel(x0+6, y0+8, 0xFFFF);
+	plot_pixel(x0+5, y0+8, 0xFFFF);
+	plot_pixel(x0+4, y0+8, 0xFFFF);
 
 	//top left
-	plot_pixel(x+3, y+8, 0xFFFF);
-	plot_pixel(x+2, y+8, 0xFFFF);
-	plot_pixel(x+3, y+7, 0xFFFF);
-	plot_pixel(x+3, y+6, 0xFFFF);
-	plot_pixel(x+2, y+6, 0xFFFF);
+	plot_pixel(x0+3, y0+8, 0xFFFF);
+	plot_pixel(x0+2, y0+8, 0xFFFF);
+	plot_pixel(x0+3, y0+7, 0xFFFF);
+	plot_pixel(x0+3, y0+6, 0xFFFF);
+	plot_pixel(x0+2, y0+6, 0xFFFF);
 
 	//top right
-	plot_pixel(x+7, y+8, 0xFFFF);
-	plot_pixel(x+8, y+8, 0xFFFF);
-	plot_pixel(x+7, y+7, 0xFFFF);
-	plot_pixel(x+7, y+6, 0xFFFF);
-	plot_pixel(x+8, y+6, 0xFFFF);
+	plot_pixel(x0+7, y0+8, 0xFFFF);
+	plot_pixel(x0+8, y0+8, 0xFFFF);
+	plot_pixel(x0+7, y0+7, 0xFFFF);
+	plot_pixel(x0+7, y0+6, 0xFFFF);
+	plot_pixel(x0+8, y0+6, 0xFFFF);
 
 	//top
-	plot_pixel(x+5, y+5, 0xFFFF);
-	plot_pixel(x+4, y+5, 0xFFFF);
-	plot_pixel(x+6, y+5, 0xFFFF);
-	plot_pixel(x+5, y+4, 0xFFFF);
-	plot_pixel(x+4, y+4, 0xFFFF);
-	plot_pixel(x+6, y+4, 0xFFFF);
-	plot_pixel(x+5, y+3, 0xFFFF);
-	plot_pixel(x+5, y+2, 0xFFFF);
-	plot_pixel(x+5, y, 0xFFFF);
+	plot_pixel(x0+5, y0+5, 0xFFFF);
+	plot_pixel(x0+4, y0+5, 0xFFFF);
+	plot_pixel(x0+6, y0+5, 0xFFFF);
+	plot_pixel(x0+5, y0+4, 0xFFFF);
+	plot_pixel(x0+4, y0+4, 0xFFFF);
+	plot_pixel(x0+6, y0+4, 0xFFFF);
+	plot_pixel(x0+5, y0+3, 0xFFFF);
+	plot_pixel(x0+5, y0+2, 0xFFFF);
+	plot_pixel(x0+5, y0, 0xFFFF);
 }
 
 void plot_pixel(int x0, int y0, short int line_color){
@@ -297,6 +296,7 @@ int main() {
 		newLocation();
 		drawRover(rover_position[0], rover_position[1]);
 		drawFlame(rover_position[0], rover_position[1]);
+
 		
         int input = keyboard();
 
