@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdbool.h>
-#include "sound_data.c"
 
 #define SPEED 5
 
@@ -182,15 +181,15 @@ int keyboard(){
     if (RVALID != 0){
         byte3 = PS2_data & 0xFF;
         switch (byte3) {
-            case 0x74:
+            case 0x75:
                 *RLEDs = 1;
                 return 1;
             case 0x6B:
                 *RLEDs = 2;
                 return 2;
-            case 0x75:
+			case 0x74:
                 *RLEDs = 3;
-                return 3;						
+                return 3;					
         }
     }
 	return -1;
@@ -287,28 +286,30 @@ int main() {
 
         //erase box, identify new location, draw box
         //current location plus speed * 1/60 (round to nearest int)
-        
-        
-
-        if (input == 1); 
-            //up key
+		// Up
+        if (input == 1){
+			//up key
             //calculate angle (0 to 180) => starts at 180
             //call newSpeed
+			rover_position[3] = 1;
 
-        
+			// Update box positions according to their movement speeds
+    		rover_position[1] -= rover_position[3];
+		}
+
+        // Left
         else if (input == 2){ //rotate right angle - 0.524 rads
 			if (angle >= 0.52){
 				angle -= 0.52;
 			}
 		}
 
-    
+        // Right
         else if (input == 3){
 			if (angle <= 2.62){
 				angle += 0.52;
 			}	
 		}
-		
 		wait_for_vsync();
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1);
     }
