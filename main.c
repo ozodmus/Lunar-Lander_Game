@@ -8,10 +8,13 @@
 double angle = 3.15;
 int x = 0;
 int y = 0;
+int horizontal_speed = 2;
+int vertical_speed = 2; //increment by 6 every second
 volatile int pixel_buffer_start; // global variable
 short int Buffer1[240][512]; // 240 rows, 512 (320 + padding) columns   
 short int Buffer2[240][512];
-rover_position[4];
+double box_position[2];
+double box_dir[2];
 
 //////////// function declarations //////////////
 void wait_for_vsync();
@@ -22,7 +25,7 @@ double newSpeed(double angle);
 int keyboard();
 bool gameOver(int x0, int y0);
 void drawRover(int x0, int y0);
-void drawFlame(double boxAngle, int x0, int y0);
+void drawFlame(int x0, int y0);
 
 //////////// helper functions //////////////
 
@@ -75,67 +78,90 @@ void drawBox(int x0, int y0){
     }
 }
 
-// void drawFlame(double boxAngle, int x, int y){}
+void drawFlame(int x0, int y0){
+	//left
+	plot_pixel(x, y+12, 0xfbc0);
+	plot_pixel(x+1, y+13, 0xfbc0);
+	plot_pixel(x+2, y+14, 0xfbc0);
+	plot_pixel(x+3, y+13, 0xfbc0);
+	plot_pixel(x+4, y+12, 0xfbc0);
+	
+	//right
+	plot_pixel(x+10, y+12, 0xfbc0);
+	plot_pixel(x+9, y+13, 0xfbc0);
+	plot_pixel(x+8, y+14, 0xfbc0);
+	plot_pixel(x+7, y+13, 0xfbc0);
+	plot_pixel(x+6, y+12, 0xfbc0);
+	
+	//yellow left
+	plot_pixel(x+2, y+11, 0xfec0);
+	plot_pixel(x+2, y+12, 0xfec0);
+	plot_pixel(x+3, y+12, 0xfec0);
+	plot_pixel(x+1, y+12, 0xfec0);
+	plot_pixel(x+2, y+13, 0xfec0);
+	
+	//yellow right
+	plot_pixel(x+8, y+11, 0xfec0);
+	plot_pixel(x+8, y+12, 0xfec0);
+	plot_pixel(x+9, y+12, 0xfec0);
+	plot_pixel(x+7, y+12, 0xfec0);
+	plot_pixel(x+8, y+13, 0xfec0);	
+}
 
 
 void drawRover(int x, int y){
-	if (y > 12 && x > 10){
-		//bottom left
-		plot_pixel(x-4, y, 0xFFFF);
-		plot_pixel(x-2, y, 0xFFFF);
-		plot_pixel(x-4, y-1, 0xFFFF);
-		plot_pixel(x-3, y-1, 0xFFFF);
-		plot_pixel(x-2, y-1, 0xFFFF);
-		plot_pixel(x-3, y-2, 0xFFFF);
-		plot_pixel(x-3, y-3, 0xFFFF);
-		
-		//bottom right
-		plot_pixel(x+4, y, 0xFFFF);
-		plot_pixel(x+2, y, 0xFFFF);
-		plot_pixel(x+4, y-1, 0xFFFF);
-		plot_pixel(x+3, y-1, 0xFFFF);
-		plot_pixel(x+2, y-1, 0xFFFF);
-		plot_pixel(x+3, y-2, 0xFFFF);
-		plot_pixel(x+3, y-3, 0xFFFF);
-		
-		//middle
-		plot_pixel(x+1, y-2, 0xFFFF);
-		plot_pixel(x, y-2, 0xFFFF);
-		plot_pixel(x-1, y-2, 0xFFFF);
-		plot_pixel(x+1, y-3, 0xFFFF);
-		plot_pixel(x, y-3, 0xFFFF);
-		plot_pixel(x-1, y-3, 0xFFFF);
-		
-		//top left
-		plot_pixel(x-2, y-3, 0xFFFF);
-		plot_pixel(x-3, y-3, 0xFFFF);
-		plot_pixel(x-2, y-4, 0xFFFF);
-		plot_pixel(x-2, y-5, 0xFFFF);
-		plot_pixel(x-3, y-5, 0xFFFF);
-		
-		//top right
-		plot_pixel(x+2, y-3, 0xFFFF);
-		plot_pixel(x+3, y-3, 0xFFFF);
-		plot_pixel(x+2, y-4, 0xFFFF);
-		plot_pixel(x+2, y-5, 0xFFFF);
-		plot_pixel(x+3, y-5, 0xFFFF);
-		
-		//top
-		plot_pixel(x, y-6, 0xFFFF);
-		plot_pixel(x-1, y-6, 0xFFFF);
-		plot_pixel(x+1, y-6, 0xFFFF);
-		plot_pixel(x, y-7, 0xFFFF);
-		plot_pixel(x-1, y-7, 0xFFFF);
-		plot_pixel(x+1, y-7, 0xFFFF);
-		plot_pixel(x, y-8, 0xFFFF);
-		plot_pixel(x, y-8, 0xFFFF);
-		plot_pixel(x, y-8, 0xFFFF);
-		plot_pixel(x, y-9, 0xFFFF);
-		plot_pixel(x, y-9, 0xFFFF);
-		plot_pixel(x, y-9, 0xFFFF);
-		
-		plot_pixel(x, y-11, 0xFFFF);
-	}
+	plot_pixel(x,y, 0xbfff); //REF
+	
+	//bottom left
+	plot_pixel(x+1, y+11, 0xFFFF);
+	plot_pixel(x+3, y+11, 0xFFFF);
+	plot_pixel(x+1, y+10, 0xFFFF);
+	plot_pixel(x+2, y+10, 0xFFFF);
+	plot_pixel(x+3, y+10, 0xFFFF);
+	plot_pixel(x+2, y+9, 0xFFFF);
+	plot_pixel(x+2, y+8, 0xFFFF);
+
+	//bottom right
+	plot_pixel(x+9, y+11, 0xFFFF);
+	plot_pixel(x+7, y+11, 0xFFFF);
+	plot_pixel(x+9, y+10, 0xFFFF);
+	plot_pixel(x+8, y+10, 0xFFFF);
+	plot_pixel(x+7, y+10, 0xFFFF);
+	plot_pixel(x+8, y+9, 0xFFFF);
+	plot_pixel(x+8, y+8, 0xFFFF);
+
+	//middle
+	plot_pixel(x+6, y+9, 0xFFFF);
+	plot_pixel(x+5, y+9, 0xFFFF);
+	plot_pixel(x+4, y+9, 0xFFFF);
+	plot_pixel(x+6, y+8, 0xFFFF);
+	plot_pixel(x+5, y+8, 0xFFFF);
+	plot_pixel(x+4, y+8, 0xFFFF);
+
+	//top left
+	plot_pixel(x+3, y+8, 0xFFFF);
+	plot_pixel(x+2, y+8, 0xFFFF);
+	plot_pixel(x+3, y+7, 0xFFFF);
+	plot_pixel(x+3, y+6, 0xFFFF);
+	plot_pixel(x+2, y+6, 0xFFFF);
+
+	//top right
+	plot_pixel(x+7, y+8, 0xFFFF);
+	plot_pixel(x+8, y+8, 0xFFFF);
+	plot_pixel(x+7, y+7, 0xFFFF);
+	plot_pixel(x+7, y+6, 0xFFFF);
+	plot_pixel(x+8, y+6, 0xFFFF);
+
+	//top
+	plot_pixel(x+5, y+5, 0xFFFF);
+	plot_pixel(x+4, y+5, 0xFFFF);
+	plot_pixel(x+6, y+5, 0xFFFF);
+	plot_pixel(x+5, y+4, 0xFFFF);
+	plot_pixel(x+4, y+4, 0xFFFF);
+	plot_pixel(x+6, y+4, 0xFFFF);
+	plot_pixel(x+5, y+3, 0xFFFF);
+	plot_pixel(x+5, y+2, 0xFFFF);
+	plot_pixel(x+5, y, 0xFFFF);
 }
 
 void plot_pixel(int x0, int y0, short int line_color){
@@ -201,20 +227,11 @@ void swap(int* a, int* b){
 	*b = temp;
 }
 
-void newLocation(){
-    // Update box positions according to their movement speeds
-    rover_position[0] += rover_position[2];
-    rover_position[1] += rover_position[3];
-
-    // Check for collisions with the screen boundary and reverse direction if needed
-    if(rover_position[0] + 1 > 320 || rover_position[0] - 1 < 0) {
-        rover_position[2] = -rover_position[2]; // Reverse X direction
-        rover_position[0] += rover_position[2]; // Adjust position after direction change
-    }
-    if(rover_position[1] + 1 > 240 || rover_position[1] - 1 < 0) {
-        rover_position[3] = -rover_position[3]; // Reverse Y direction
-        rover_position[1] += rover_position[3]; // Adjust position after direction change
-    }
+void newLocation(int x0, int y0){
+	vertical_speed += 6/60;
+	horizontal_speed += 5/60;
+	y += vertical_speed;
+	x += horizontal_speed;
 }
 
 void draw_line(int x1, int y1, int x2, int y2, short int line_color){
@@ -260,14 +277,7 @@ void draw_line(int x1, int y1, int x2, int y2, short int line_color){
 }
 //////////// MAIN FUNCTION //////////////
 
-int main() {  
-	//Initializations
-	rover_position[0] = x;
-	rover_position[1] = y;
-	rover_position[2] = SPEED;
-	rover_position[3] = SPEED;
-
-	// Double Buffer Set Up
+int main() {   
     volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; 
     pixel_buffer_start = *pixel_ctrl_ptr;
@@ -277,10 +287,12 @@ int main() {
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); 
     clear_screen(); 
 
+
     while (1){
-		clear_screen();
-		newLocation();
-		drawRover(rover_position[0], rover_position[1]);
+		newLocation(x, y);
+		drawRover(x, y);
+		drawFlame(x, y);
+		
 		
         int input = keyboard();
 
@@ -312,6 +324,7 @@ int main() {
 		}
 		wait_for_vsync();
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+		clear_screen();
     }
 
     return 0;
