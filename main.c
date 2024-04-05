@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 //////////// global variables //////////////
 double angle = 3.15;
@@ -9,7 +10,7 @@ int y = 0;
 volatile int pixel_buffer_start;  // global variable
 short int Buffer1[240][512];      // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
-rover_position[4];
+int rover_position[4];
 int speed = 1;
 
 const unsigned short Lunar_Lander_Background[153600] = {
@@ -8569,6 +8570,10 @@ void project_background();
 bool checkCollision(int x0, int y0, LineSegment line);
 void drawMainScreen();
 void clearscreenbackground();
+void landingCheck();
+void typeNextLevelStart();
+void write_char(int x, int y, char c);
+void newLocation();
 
 //////////// helper functions //////////////
 
@@ -8745,7 +8750,9 @@ void plot_pixel(int x0, int y0, short int line_color) {
 // }
 
 int keyboard() {
-  unsigned char byte3 = -1;
+  unsigned char byte1 = 0;
+  unsigned char byte2 = 0;
+  unsigned char byte3 = 0;
   volatile int *PS2_ptr = (int *)0xFF200100;  // PS/2 port address
   volatile int *RLEDs = (int *)0x0FF200000;
   int PS2_data, RVALID;
@@ -8753,25 +8760,28 @@ int keyboard() {
   PS2_data = *(PS2_ptr);         // read the Data register in the PS/2 port
   RVALID = (PS2_data & 0x8000);  // extract the RVALID field
   if (RVALID != 0) {
-    byte3 = PS2_data & 0xFF;
-    switch (byte3) {
-      case 0x75:
-        *RLEDs = 1;
-        return 1;
-      case 0x6B:
-        *RLEDs = 2;
-        return 2;
-      case 0x74:
-        *RLEDs = 3;
-        return 3;
-      case 0x29:
-        *RLEDs = 4;
-        return 4;
-      default:
-        *RLEDs = 5;
-        return 5;
-    }
+    byte1 = byte2;
+	byte2 = byte3;
+	byte3 = PS2_data & 0xFF;
+    if (byte2 != 0xF0){
+	switch (byte3) {
+		case 0x75:
+			*RLEDs = 1;
+			return 1;
+		case 0x6B:
+			*RLEDs = 2;
+			return 2;
+		case 0x74:
+			*RLEDs = 3;
+			return 3;
+		case 0x29:
+			*RLEDs = 4;
+			return 4;
+		}
+	}
   }
+  *RLEDs = byte3;
+  return -1;
 }
 
 void swap(int *a, int *b) {
@@ -8780,11 +8790,46 @@ void swap(int *a, int *b) {
   *b = temp;
 }
 
-void newLocation() {
-  // Update box positions according to their movement speeds
-  rover_position[0] += rover_position[2];
-  rover_position[1] += rover_position[3];
+void write_char(int x, int y, char c) {
+  // VGA character buffer
+  volatile char * character_buffer = (char *) (0x09000000 + (y<<7) + x);
+  *character_buffer = c;
+}  
 
+void typeNextLevelStart(){
+  int x = 26;
+  int y = 40;
+  volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
+  bool check = false;
+
+  char *mz = "You are Lost in Space. Press Space to Start Again.";
+  wait_for_vsync();  // swap front and back buffers on VGA vertical sync
+  pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // new back buffer
+
+  for (int pos = 0; pos < strlen(mz); pos++) {
+    write_char(x + pos, y, mz[pos]);
+  }
+
+  wait_for_vsync();  // swap front and back buffers on VGA vertical sync
+  pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // new back buffer
+
+  while(1){
+	  int inp_clear = keyboard();
+	  if(inp_clear == 4){
+	    printf("Space\n");
+		check = true;
+		break;
+    }
+  }
+
+  if(check == true){
+		for (int pos = 0; pos < strlen(mz); pos++) {
+		write_char(x + pos, y, 0);
+	}
+  }
+}
+
+void newLocation() {
   // Define line segments for the landscape
   LineSegment line[] = {{0, 200, 60, 180},    {70, 180, 110, 220},
                         {125, 220, 145, 200}, {155, 200, 170, 215},
@@ -8804,16 +8849,16 @@ void newLocation() {
 
   // Check for collisions with the screen boundary and reverse direction if
   // needed
-  if (rover_position[0] + 1 > 320 || rover_position[0] - 1 < 0) {
-    rover_position[2] = -rover_position[2];  // Reverse X direction
-    rover_position[0] +=
-        rover_position[2];  // Adjust position after direction change
+  if (rover_position[0] > 319) {
+      // Reverse X direction
+    rover_position[0] = 0;
+  } else if(rover_position[0] < 0){
+    rover_position[0] = 319;
   }
-  if (rover_position[1] + 1 > 240 || rover_position[1] - 1 < 0) {
-    rover_position[3] = -rover_position[3];  // Reverse Y direction
-    rover_position[1] +=
-        rover_position[3];  // Adjust position after direction change
-  }
+}
+
+void landingCheck(){
+
 }
 
 // Function to check collision between a box and a line segment
@@ -8932,37 +8977,54 @@ int main() {
 
   while (1) {
     clearscreenbackground();
+	bool check_lost = false;
+
+    // Update box positions according to their movement speeds
+    rover_position[0] += rover_position[2];
+    rover_position[1] += rover_position[3];
+    
+	if((rover_position[1] >= 0 && rover_position[1] <= 239)){
+	  drawRover(rover_position[0], rover_position[1]);
+	}
     newLocation();
-    drawRover(rover_position[0], rover_position[1]);
-
-    int input = keyboard();
-
-    // erase box, identify new location, draw box
-    // current location plus speed * 1/60 (round to nearest int)
-    //  Up
+	int input = keyboard();
+    
+	if(rover_position[1] < -10){
+	  typeNextLevelStart();
+	  rover_position[0] = x;
+  	  rover_position[1] = y;
+	  rover_position[2] = speed;
+  	  rover_position[3] = speed;
+	  continue;
+	}
+    
+    // Up
     if (input == 1) {
-      // up key
-      // calculate angle (0 to 180) => starts at 180
-      // call newSpeed
-      drawFlame(rover_position[0], rover_position[1]);
-      rover_position[3] = speed;
+	  if((rover_position[1] >= 0 && rover_position[1] <= 239)){
+      	drawFlame(rover_position[0], rover_position[1]);
+	  }
       // Update box positions according to their movement speeds
-      rover_position[1] -= rover_position[3];
+      rover_position[1] += -speed;
     }
 
     // Left
     else if (input == 2) {
-      rover_position[2] = speed;
+      if((rover_position[1] >= 0 && rover_position[1] <= 239)){
+      	drawFlame(rover_position[0], rover_position[1]);
+	  }
       // Update box positions according to their movement speeds
-      rover_position[0] -= rover_position[2];
+      rover_position[0] += -speed;
     }
 
     // Right
     else if (input == 3) {
-      rover_position[2] = speed;
+      if((rover_position[1] >= 0 && rover_position[1] <= 239)){
+      	drawFlame(rover_position[0], rover_position[1]);
+	  }
       // Update box positions according to their movement speeds
-      rover_position[0] += rover_position[2];
+      rover_position[0] += speed;
     }
+
     wait_for_vsync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
   }
