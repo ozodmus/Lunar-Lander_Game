@@ -12,6 +12,9 @@ short int Buffer1[240][512];      // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
 int rover_position[4];
 int speed = 1;
+unsigned char byte1 = 0;
+unsigned char byte2 = 0;
+unsigned char byte3 = 0;
 
 const unsigned short Lunar_Lander_Background[153600] = {
     0x0020, 0x0020, 0x0020, 0x0020, 0x0841, 0x0020, 0x0020, 0x0020, 0x0020,
@@ -8750,39 +8753,39 @@ void plot_pixel(int x0, int y0, short int line_color) {
 // }
 
 int keyboard() {
-  unsigned char byte1 = 0;
-  unsigned char byte2 = 0;
-  unsigned char byte3 = 0;
-  volatile int *PS2_ptr = (int *)0xFF200100;  // PS/2 port address
-  volatile int *RLEDs = (int *)0x0FF200000;
-  int PS2_data, RVALID;
+    volatile int *PS2_ptr = (int *)0xFF200100;  // PS/2 port address
+    volatile int *RLEDs = (int *)0x0FF200000;
+    int PS2_data, RVALID;
 
-  PS2_data = *(PS2_ptr);         // read the Data register in the PS/2 port
-  RVALID = (PS2_data & 0x8000);  // extract the RVALID field
-  if (RVALID != 0) {
-    byte1 = byte2;
-	byte2 = byte3;
-	byte3 = PS2_data & 0xFF;
-    if (byte2 != 0xF0){
-	switch (byte3) {
-		case 0x75:
-			*RLEDs = 1;
-			return 1;
-		case 0x6B:
-			*RLEDs = 2;
-			return 2;
-		case 0x74:
-			*RLEDs = 3;
-			return 3;
-		case 0x29:
-			*RLEDs = 4;
-			return 4;
-		}
-	}
-  }
-  *RLEDs = byte3;
-  return -1;
+    PS2_data = *(PS2_ptr);         // read the Data register in the PS/2 port
+    RVALID = (PS2_data & 0x8000);  // extract the RVALID field
+
+    if (RVALID != 0) {
+        byte1 = byte2;
+        byte2 = byte3;
+        byte3 = PS2_data & 0xFF;
+        if (byte2 == 0xf0){
+            switch (byte3) {
+                case 0x75:
+                    *RLEDs = 1;
+                    return 1;
+                case 0x6B:
+                    *RLEDs = 2;
+                    return 2;
+                case 0x74:
+                    *RLEDs = 3;
+                    return 3;
+                case 0x29:
+                    *RLEDs = 4;
+                    return 4;
+            }
+        }
+    }
+
+    *RLEDs = byte3;
+    return -1;
 }
+
 
 void swap(int *a, int *b) {
   int temp = *a;
