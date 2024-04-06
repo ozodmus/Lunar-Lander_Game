@@ -16,6 +16,10 @@ unsigned char byte1 = 0;
 unsigned char byte2 = 0;
 unsigned char byte3 = 0;
 
+typedef struct {
+  int x, y;
+} Point;
+
 const unsigned short Lunar_Lander_Background[153600] = {
     0x0020, 0x0020, 0x0020, 0x0020, 0x0841, 0x0020, 0x0020, 0x0020, 0x0020,
     0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020,
@@ -8552,10 +8556,38 @@ const unsigned short Lunar_Lander_Background[153600] = {
     0x6b4d, 0x630c, 0x630c, 0x630c, 0x630c, 0x6b4d, 0x6b4d, 0x632c, 0x5aeb,
     0x632c, 0x6b4d, 0x632c};
 
+// array size is 4500
+const unsigned short collision_png[450] = {
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xd145, 0xc123, 0xc923, 0xa800,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0xf800, 0xc163, 0xc163, 0xc143, 0xba00, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xd9c2,
+    0xc9a2, 0xc9a2, 0xc982, 0xc983, 0xc9c2, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0000, 0x0000, 0x0000, 0xc8c3, 0xd140, 0xd202, 0xd1e2, 0xd202, 0xd1e2,
+    0xc9c2, 0xd202, 0xd201, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    0xc103, 0xc143, 0xdb01, 0xd241, 0xe2c0, 0xe2c0, 0xd261, 0xd241, 0xd241,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xc123, 0xe362, 0xec21,
+    0xdb01, 0xe3a0, 0xebe0, 0xe360, 0xe320, 0xdaa1, 0xca63, 0xc980, 0x0000,
+    0x0000, 0x0000, 0xc962, 0xc9a2, 0xd262, 0xe423, 0xeda4, 0xf4a2, 0xed23,
+    0xecc2, 0xe381, 0xd261, 0xd241, 0xd222, 0x0000, 0xaaa0, 0xc9e2, 0xc9c2,
+    0xd282, 0xe340, 0xe3a3, 0xf628, 0xf5e6, 0xed84, 0xe3e1, 0xe320, 0xe320,
+    0xdac1, 0xdaa1, 0xfa00, 0xd1e1, 0xd222, 0xd2c2, 0xe441, 0xe3c1, 0xec23,
+    0xf732, 0xed48, 0xebc0, 0xe3e1, 0xec00, 0xe320, 0xe361, 0xdb01, 0xe2a1,
+    0xd240, 0xd281, 0xe3a2, 0xed63, 0xed83, 0xecc2, 0xed03, 0xecc1, 0xed22,
+    0xed63, 0xeca2, 0xe421, 0xe482, 0xdac2, 0xc9a1, 0xdae1, 0xdb00, 0xec21,
+    0xf624, 0xf603, 0xf624, 0xf582, 0xf665, 0xf6a5, 0xf604, 0xed64, 0xf665,
+    0xe443, 0xd262, 0xd202, 0xeb40, 0xe380, 0xed84, 0xf686, 0xf70a, 0xf70a,
+    0xf6ca, 0xf70a, 0xf625, 0xf542, 0xf74e, 0xee29, 0xdba2, 0xdaa1, 0xd241,
+    0xfaa0, 0xec21, 0xf5c8, 0xf6cb, 0xff0d, 0xfea7, 0xf6a9, 0xf770, 0xf72d,
+    0xf603, 0xf6cd, 0xece2, 0xe421, 0xdb00, 0xe320, 0x0000, 0xf460, 0xf565,
+    0xf6ef, 0xff0d, 0xfe85, 0xf6c6, 0xf74c, 0xf794, 0xff72, 0xfe64, 0xf669,
+    0xed03, 0xe380, 0x0000, 0x0000, 0x0000, 0xed40, 0xf5c4, 0xfe87, 0xfe85,
+    0xfe62, 0xfe84, 0xfec9, 0xff0f, 0xfe64, 0xf5c4, 0xe481, 0xf800, 0x0000};
+
 // Structure to represent a line segment
 typedef struct {
-  float x1, y1;  // Start point
-  float x2, y2;  // End point
+  Point start;  // Starting endpoint of the line segment
+  Point end;    // Ending endpoint of the line segment
 } LineSegment;
 
 //////////// function declarations //////////////
@@ -8570,13 +8602,19 @@ void drawRover(int x0, int y0);
 void drawFlame(int x0, int y0);
 void draw_line(int x1, int y1, int x2, int y2, short int line_color);
 void project_background();
-bool checkCollision(int x0, int y0, LineSegment line);
+bool checkCollision(int rover_x, int rover_y, LineSegment line_seg);
 void drawMainScreen();
 void clearscreenbackground();
 void landingCheck();
-void typeNextLevelStart();
+void typeNextLevelStart(char *str);
 void write_char(int x, int y, char c);
 void newLocation();
+int orientation(Point p, Point q, Point r);
+bool onSegment(Point p, Point q, Point r);
+bool doIntersect(Point p1, Point q1, Point p2, Point q2);
+int max(int a, int b);
+int min(int a, int b);
+void collisionDisplay();
 
 //////////// helper functions //////////////
 
@@ -8752,40 +8790,83 @@ void plot_pixel(int x0, int y0, short int line_color) {
 //     return result;
 // }
 
-int keyboard() {
-    volatile int *PS2_ptr = (int *)0xFF200100;  // PS/2 port address
-    volatile int *RLEDs = (int *)0x0FF200000;
-    int PS2_data, RVALID;
-
-    PS2_data = *(PS2_ptr);         // read the Data register in the PS/2 port
-    RVALID = (PS2_data & 0x8000);  // extract the RVALID field
-
-    if (RVALID != 0) {
-        byte1 = byte2;
-        byte2 = byte3;
-        byte3 = PS2_data & 0xFF;
-        if (byte2 == 0xf0){
-            switch (byte3) {
-                case 0x75:
-                    *RLEDs = 1;
-                    return 1;
-                case 0x6B:
-                    *RLEDs = 2;
-                    return 2;
-                case 0x74:
-                    *RLEDs = 3;
-                    return 3;
-                case 0x29:
-                    *RLEDs = 4;
-                    return 4;
-            }
-        }
-    }
-
-    *RLEDs = byte3;
-    return -1;
+// To find orientation of ordered triplet (p, q, r).
+// The function returns following values
+// 0 --> p, q, and r are colinear
+// 1 --> Clockwise
+// 2 --> Counterclockwise
+int orientation(Point p, Point q, Point r) {
+  int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+  if (val == 0) return 0;    // Colinear
+  return (val > 0) ? 1 : 2;  // Clock or counterclockwise
 }
 
+// Given three colinear points p, q, r, the function checks if
+// point q lies on line segment 'pr'
+bool onSegment(Point p, Point q, Point r) {
+  if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) && q.y <= max(p.y, r.y) &&
+      q.y >= min(p.y, r.y))
+    return true;
+  return false;
+}
+
+// The main function that returns true if line segment 'p1q1'
+// and 'p2q2' intersect.
+bool doIntersect(Point p1, Point q1, Point p2, Point q2) {
+  // Find the four orientations needed for the general and special cases
+  int a1 = orientation(p1, q1, p2);
+  int a2 = orientation(p1, q1, q2);
+  int a3 = orientation(p2, q2, p1);
+  int a4 = orientation(p2, q2, q1);
+
+  // General case
+  if (a1 != a2 && a3 != a4) return true;
+
+  // Special Cases
+  // p1, q1 and p2 are colinear and p2 lies on segment p1q1
+  if (a1 == 0 && onSegment(p1, p2, q1)) return true;
+  // p1, q1 and q2 are colinear and q2 lies on segment p1q1
+  if (a2 == 0 && onSegment(p1, q2, q1)) return true;
+  // p2, q2 and p1 are colinear and p1 lies on segment p2q2
+  if (a3 == 0 && onSegment(p2, p1, q2)) return true;
+  // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+  if (a4 == 0 && onSegment(p2, q1, q2)) return true;
+  return false;  // Doesn't fall into any of the above cases
+}
+
+int keyboard() {
+  volatile int *PS2_ptr = (int *)0xFF200100;  // PS/2 port address
+  volatile int *RLEDs = (int *)0x0FF200000;
+  int PS2_data, RVALID;
+
+  PS2_data = *(PS2_ptr);         // read the Data register in the PS/2 port
+  RVALID = (PS2_data & 0x8000);  // extract the RVALID field
+
+  if (RVALID != 0) {
+    byte1 = byte2;
+    byte2 = byte3;
+    byte3 = PS2_data & 0xFF;
+    if (byte2 == 0xf0) {
+      switch (byte3) {
+        case 0x75:
+          *RLEDs = 1;
+          return 1;
+        case 0x6B:
+          *RLEDs = 2;
+          return 2;
+        case 0x74:
+          *RLEDs = 3;
+          return 3;
+        case 0x29:
+          *RLEDs = 4;
+          return 4;
+      }
+    }
+  }
+
+  *RLEDs = byte3;
+  return -1;
+}
 
 void swap(int *a, int *b) {
   int temp = *a;
@@ -8795,106 +8876,103 @@ void swap(int *a, int *b) {
 
 void write_char(int x, int y, char c) {
   // VGA character buffer
-  volatile char * character_buffer = (char *) (0x09000000 + (y<<7) + x);
+  volatile char *character_buffer = (char *)(0x09000000 + (y << 7) + x);
   *character_buffer = c;
-}  
+}
 
-void typeNextLevelStart(){
-  int x = 26;
-  int y = 40;
+void typeNextLevelStart(char *str) {
+  int x = 10;
+  int y = 30;
   volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
   bool check = false;
 
-  char *mz = "You are Lost in Space. Press Space to Start Again.";
   wait_for_vsync();  // swap front and back buffers on VGA vertical sync
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // new back buffer
 
-  for (int pos = 0; pos < strlen(mz); pos++) {
-    write_char(x + pos, y, mz[pos]);
+  for (int pos = 0; pos < strlen(str); pos++) {
+    write_char(x + pos, y, str[pos]);
   }
 
   wait_for_vsync();  // swap front and back buffers on VGA vertical sync
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // new back buffer
 
-  while(1){
-	  int inp_clear = keyboard();
-	  if(inp_clear == 4){
-	    printf("Space\n");
-		check = true;
-		break;
+  while (1) {
+    int inp_clear = keyboard();
+    if (inp_clear == 4) {
+      printf("Space\n");
+      check = true;
+      break;
     }
   }
 
-  if(check == true){
-		for (int pos = 0; pos < strlen(mz); pos++) {
-		write_char(x + pos, y, 0);
-	}
+  if (check == true) {
+    for (int pos = 0; pos < strlen(str); pos++) {
+      write_char(x + pos, y, 0);
+    }
   }
 }
 
 void newLocation() {
   // Define line segments for the landscape
-  LineSegment line[] = {{0, 200, 60, 180},    {70, 180, 110, 220},
-                        {125, 220, 145, 200}, {155, 200, 170, 215},
-                        {176, 215, 185, 222}, {185, 222, 208, 203},
-                        {208, 203, 250, 230}, {265, 230, 300, 195}};
+  LineSegment line[] = {{{0, 200}, {60, 180}},    {{70, 180}, {110, 220}},
+                        {{125, 220}, {145, 200}}, {{155, 200}, {170, 215}},
+                        {{176, 215}, {185, 222}}, {{185, 222}, {208, 203}},
+                        {{208, 203}, {250, 230}}, {{265, 230}, {300, 195}}};
+
+  volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
 
   for (int i = 0; i < sizeof(line) / sizeof(line[0]); i++) {
     if (checkCollision(rover_position[0], rover_position[1], line[i])) {
       printf("Collision detected with line segment %d!\n", i);
-      rover_position[2] = -rover_position[2];  // Reverse X direction
-      rover_position[3] = -rover_position[3];  // Reverse Y direction
-      rover_position[0] += rover_position[2];
-      rover_position[1] += rover_position[3];
-      // Add collision response logic here
+      rover_position[2] = 0;  // stop X
+      rover_position[3] = 0;  // Stop Y
+      collisionDisplay();
+      wait_for_vsync();  // swap front and back buffers on VGA vertical sync
+      pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // new back buffer
+
+      char *str =
+          "You Destroyed a Billion Dollar Rover. Press Space to Start Again.";
+      typeNextLevelStart(str);
+
+      // Initial Conditions
+      rover_position[0] = x;
+      rover_position[1] = y;
+      rover_position[2] = speed;
+      rover_position[3] = speed;
+      break;
     }
   }
-
   // Check for collisions with the screen boundary and reverse direction if
   // needed
   if (rover_position[0] > 319) {
-      // Reverse X direction
+    // Reverse X direction
     rover_position[0] = 0;
-  } else if(rover_position[0] < 0){
+  } else if (rover_position[0] < 0) {
     rover_position[0] = 319;
   }
 }
 
-void landingCheck(){
-
-}
+void landingCheck() {}
 
 // Function to check collision between a box and a line segment
-bool checkCollision(int x0, int y0, LineSegment line) {
-  // Calculate the corners of the box
-  int minX = x0 + 1;
-  int minY = y0 + 11;
-  int maxX = x0 + 9;
-  int maxY = y0 + 11;
+bool checkCollision(int rover_x, int rover_y, LineSegment line_seg) {
+  // Assuming the rover's bounding box is defined by these corners
+  Point roverCorners[5] = {{rover_x, rover_y},
+                           {rover_x + 9, rover_y},
+                           {rover_x + 9, rover_y + 11},
+                           {rover_x, rover_y + 11},
+                           {rover_x, rover_y}};
 
-  double slope = (line.y2 - line.y1) / (line.x2 - line.x1);
-
-  // Check if any corner of the box lies on the opposite side of the line
-  // segment
-  if (slope > 0) {
-    for (int i = line.x1; i < line.x2; i++) {
-      for (int j = line.y1; j < line.y2; j++) {
-        if ((minY == j || maxY == j) && (minX == i || maxX == i)) {
-          return true;
-        }
-      }
-    }
-  } else {
-    for (int i = line.x1; i < line.x2; i++) {
-      for (int j = line.y2; j < line.y1; j++) {
-        if ((minY == j || maxY == j) && (minX == i || maxX == i)) {
-          return true;
-        }
-      }
+  // Check each edge of the rover's bounding box for intersection with the
+  // terrain line
+  for (int i = 0; i < 4; i++) {
+    if (doIntersect(roverCorners[i], roverCorners[i + 1], line_seg.start,
+                    line_seg.end)) {
+      return true;  // Collision detected
     }
   }
 
-  return false;
+  return false;  // No collision detected
 }
 
 void draw_line(int x1, int y1, int x2, int y2, short int line_color) {
@@ -8939,7 +9017,7 @@ void draw_line(int x1, int y1, int x2, int y2, short int line_color) {
   }
 }
 
-// To clear the screen
+// To draw the opening screen
 void drawMainScreen() {
   for (int y = 0; y < 240; y++) {
     for (int x = 0; x < 320; x++) {
@@ -8948,6 +9026,22 @@ void drawMainScreen() {
     }
   }
 }
+
+// To clear the screen
+void collisionDisplay() {
+  for (int y = 0; y < 15; y++) {
+    for (int x = 0; x < 15; x++) {
+      int ind = y * 15 + x;
+      plot_pixel((rover_position[0] + x), (rover_position[1] + y),
+                 collision_png[ind]);
+    }
+  }
+}
+
+// Max and Min functions
+int max(int a, int b) { return (a > b) ? a : b; }
+
+int min(int a, int b) { return (a < b) ? a : b; }
 
 //////////// MAIN FUNCTION //////////////
 
@@ -8980,50 +9074,52 @@ int main() {
 
   while (1) {
     clearscreenbackground();
-	bool check_lost = false;
+    bool check_lost = false;
 
     // Update box positions according to their movement speeds
     rover_position[0] += rover_position[2];
     rover_position[1] += rover_position[3];
-    
-	if((rover_position[1] >= 0 && rover_position[1] <= 239)){
-	  drawRover(rover_position[0], rover_position[1]);
-	}
+
+    if ((rover_position[1] >= 0 && rover_position[1] <= 239)) {
+      drawRover(rover_position[0], rover_position[1]);
+    }
     newLocation();
-	int input = keyboard();
-    
-	if(rover_position[1] < -10){
-	  typeNextLevelStart();
-	  rover_position[0] = x;
-  	  rover_position[1] = y;
-	  rover_position[2] = speed;
-  	  rover_position[3] = speed;
-	  continue;
-	}
-    
+    int input = keyboard();
+
+    // Text -> Out of Bounds
+    if (rover_position[1] < -10) {
+      char *str = "You are Lost in Space. Press Space to Start Again.";
+      typeNextLevelStart(str);
+      rover_position[0] = x;
+      rover_position[1] = y;
+      rover_position[2] = speed;
+      rover_position[3] = speed;
+      continue;
+    }
+
     // Up
     if (input == 1) {
-	  if((rover_position[1] >= 0 && rover_position[1] <= 239)){
-      	drawFlame(rover_position[0], rover_position[1]);
-	  }
+      if ((rover_position[1] >= 0 && rover_position[1] <= 239)) {
+        drawFlame(rover_position[0], rover_position[1]);
+      }
       // Update box positions according to their movement speeds
       rover_position[1] += -speed;
     }
 
     // Left
     else if (input == 2) {
-      if((rover_position[1] >= 0 && rover_position[1] <= 239)){
-      	drawFlame(rover_position[0], rover_position[1]);
-	  }
+      if ((rover_position[1] >= 0 && rover_position[1] <= 239)) {
+        drawFlame(rover_position[0], rover_position[1]);
+      }
       // Update box positions according to their movement speeds
       rover_position[0] += -speed;
     }
 
     // Right
     else if (input == 3) {
-      if((rover_position[1] >= 0 && rover_position[1] <= 239)){
-      	drawFlame(rover_position[0], rover_position[1]);
-	  }
+      if ((rover_position[1] >= 0 && rover_position[1] <= 239)) {
+        drawFlame(rover_position[0], rover_position[1]);
+      }
       // Update box positions according to their movement speeds
       rover_position[0] += speed;
     }
