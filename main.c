@@ -11,10 +11,15 @@ volatile int pixel_buffer_start;  // global variable
 short int Buffer1[240][512];      // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
 int rover_position[4];
-int speed = 1;
+int speed = 1;  // Gravity effect
 unsigned char byte1 = 0;
 unsigned char byte2 = 0;
 unsigned char byte3 = 0;
+double vertical_speed = 1.0;    // Keep as double for precise physics simulation
+double vertical_thrust = 0.75;  // Upward thrust
+double horizontal_speed = 1.0;  // Horizontal speed
+double horizontal_thrust = 0.75;
+double gravity = 0.02;
 
 typedef struct {
   int x, y;
@@ -8593,7 +8598,6 @@ typedef struct {
 //////////// function declarations //////////////
 void wait_for_vsync();
 void clear_screen();
-void drawBox(int x0, int y0);
 void plot_pixel(int x, int y, short int line_color);
 double newSpeed(double angle);
 int keyboard();
@@ -8605,16 +8609,19 @@ void project_background();
 bool checkCollision(int rover_x, int rover_y, LineSegment line_seg);
 void drawMainScreen();
 void clearscreenbackground();
-void landingCheck();
 void typeNextLevelStart(char *str);
+void vText();
+void hText();
 void write_char(int x, int y, char c);
-void newLocation();
+void landingPlusBoundaryCheck();
 int orientation(Point p, Point q, Point r);
 bool onSegment(Point p, Point q, Point r);
 bool doIntersect(Point p1, Point q1, Point p2, Point q2);
 int max(int a, int b);
 int min(int a, int b);
 void collisionDisplay();
+int myRound(double value);
+int scaleValue(double value);
 
 //////////// helper functions //////////////
 
@@ -8633,6 +8640,17 @@ void project_background() {
   draw_line(250, 230, 265, 230, 0xffff);
   draw_line(265, 230, 300, 195, 0xffff);
   draw_line(300, 195, 319, 195, 0xffff);
+  plot_pixel(20, 20, 0xffff);
+  plot_pixel(50, 70, 0xffff);
+  plot_pixel(80, 120, 0xffff);
+  plot_pixel(110, 97, 0xffff);
+  plot_pixel(140, 137, 0xffff);
+  plot_pixel(170, 45, 0xffff);
+  plot_pixel(200, 104, 0xffff);
+  plot_pixel(239, 25, 0xffff);
+  plot_pixel(270, 60, 0xffff);
+  plot_pixel(295, 95, 0xffff);
+  plot_pixel(25, 145, 0xffff);
 }
 
 void wait_for_vsync() {
@@ -8661,16 +8679,6 @@ void clearscreenbackground() {
     }
   }
   project_background();
-}
-
-void drawBox(int x0, int y0) {
-  for (int i = (x0 - 3); i < x0 + 4; i++) {
-    for (int j = (y0 - 3); j < y0 + 4; j++) {
-      // i = i*cos(angle) - j*sin(angle);
-      // j = i*sin(angle) + j*cos(angle);
-      plot_pixel(i, j, 0xFFFF);
-    }
-  }
 }
 
 // void drawFlame(double boxAngle, int x, int y){}
@@ -8860,6 +8868,9 @@ int keyboard() {
         case 0x29:
           *RLEDs = 4;
           return 4;
+        case 0x72:
+          *RLEDs = 5;
+          return 5;
       }
     }
   }
@@ -8881,8 +8892,8 @@ void write_char(int x, int y, char c) {
 }
 
 void typeNextLevelStart(char *str) {
-  int x = 10;
-  int y = 30;
+  int x0 = 10;
+  int y0 = 30;
   volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
   bool check = false;
 
@@ -8890,7 +8901,7 @@ void typeNextLevelStart(char *str) {
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // new back buffer
 
   for (int pos = 0; pos < strlen(str); pos++) {
-    write_char(x + pos, y, str[pos]);
+    write_char(x0 + pos, y0, str[pos]);
   }
 
   wait_for_vsync();  // swap front and back buffers on VGA vertical sync
@@ -8907,22 +8918,66 @@ void typeNextLevelStart(char *str) {
 
   if (check == true) {
     for (int pos = 0; pos < strlen(str); pos++) {
-      write_char(x + pos, y, 0);
+      write_char(x0 + pos, y0, 0);
     }
   }
 }
 
-void newLocation() {
+void vText() {
+  int x0 = 0;
+  int y0 = 3;
+  volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
+
+  char str[30];
+  int vert_val = scaleValue(vertical_speed);
+  sprintf(str, "Vertical Speed: %d", vert_val);
+
+  for (int pos = 0; pos < strlen(str); pos++) {
+    write_char(x0 + pos, y0, str[pos]);
+  }
+}
+
+void hText() {
+  int x0 = 0;
+  int y0 = 5;
+  volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
+
+  char str[30];
+  int hor_val = scaleValue(horizontal_speed);
+  sprintf(str, "Horizontal Speed: %d", hor_val);
+
+  for (int pos = 0; pos < strlen(str); pos++) {
+    write_char(x0 + pos, y0, str[pos]);
+  }
+}
+
+int scaleValue(double value) {
+  // Define the old range
+  double oldMin = -2;
+  double oldMax = 2;
+
+  // Define the new range
+  double newMin = -10;
+  double newMax = 10;
+
+  // Apply the scaling formula
+  double newValue =
+      ((value - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin;
+
+  return (int)myRound(newValue);
+}
+
+void landingPlusBoundaryCheck() {
   // Define line segments for the landscape
-  LineSegment line[] = {{{0, 200}, {60, 180}},    {{70, 180}, {110, 220}},
-                        {{125, 220}, {145, 200}}, {{155, 200}, {170, 215}},
-                        {{176, 215}, {185, 222}}, {{185, 222}, {208, 203}},
-                        {{208, 203}, {250, 230}}, {{265, 230}, {300, 195}}};
+  LineSegment line1[] = {{{0, 200}, {60, 180}},    {{70, 180}, {110, 220}},
+                         {{125, 220}, {145, 200}}, {{155, 200}, {170, 215}},
+                         {{176, 215}, {185, 222}}, {{185, 222}, {208, 203}},
+                         {{208, 203}, {250, 230}}, {{265, 230}, {300, 195}}};
 
   volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
 
-  for (int i = 0; i < sizeof(line) / sizeof(line[0]); i++) {
-    if (checkCollision(rover_position[0], rover_position[1], line[i])) {
+  for (int i = 0; i < sizeof(line1) / sizeof(line1[0]); i++) {
+    if (checkCollision(rover_position[0], rover_position[1], line1[i])) {
       printf("Collision detected with line segment %d!\n", i);
       rover_position[2] = 0;  // stop X
       rover_position[3] = 0;  // Stop Y
@@ -8937,8 +8992,34 @@ void newLocation() {
       // Initial Conditions
       rover_position[0] = x;
       rover_position[1] = y;
-      rover_position[2] = speed;
-      rover_position[3] = speed;
+      vertical_speed = 1.0;
+      horizontal_speed = 1.0;
+      break;
+    }
+  }
+
+  // Define line segments for the landscape
+  LineSegment line2[] = {{{60, 180}, {70, 180}},   {{110, 220}, {125, 220}},
+                         {{145, 200}, {155, 200}}, {{170, 215}, {176, 215}},
+                         {{250, 230}, {265, 230}}, {{185, 222}, {208, 203}},
+                         {{208, 203}, {250, 230}}, {{300, 195}, {319, 195}}};
+
+  for (int i = 0; i < sizeof(line2) / sizeof(line2[0]); i++) {
+    if ((checkCollision(rover_position[0], rover_position[1], line2[i]))) {
+      printf("Landed!\n");
+      rover_position[2] = 0;  // stop X
+      rover_position[3] = 0;  // Stop Y
+      wait_for_vsync();  // swap front and back buffers on VGA vertical sync
+      pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // new back buffer
+
+      char *str = "You have Landed Successfully. Press Space to Start Again.";
+      typeNextLevelStart(str);
+
+      // Initial Conditions
+      rover_position[0] = x;
+      rover_position[1] = y;
+      vertical_speed = 1.0;
+      horizontal_speed = 1.0;
       break;
     }
   }
@@ -8951,8 +9032,6 @@ void newLocation() {
     rover_position[0] = 319;
   }
 }
-
-void landingCheck() {}
 
 // Function to check collision between a box and a line segment
 bool checkCollision(int rover_x, int rover_y, LineSegment line_seg) {
@@ -9043,14 +9122,23 @@ int max(int a, int b) { return (a > b) ? a : b; }
 
 int min(int a, int b) { return (a < b) ? a : b; }
 
+// Custom round function
+int myRound(double value) {
+  if (value < 0.0) {
+    return (int)(value - 0.5);
+  } else {
+    return (int)(value + 0.5);
+  }
+}
+
 //////////// MAIN FUNCTION //////////////
 
 int main() {
   // Initializations
   rover_position[0] = x;
   rover_position[1] = y;
-  rover_position[2] = speed;
-  rover_position[3] = speed;
+  rover_position[2] = (int)(horizontal_speed);
+  rover_position[3] = (int)(vertical_speed);
 
   // Double Buffer Set Up
   volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
@@ -9074,16 +9162,24 @@ int main() {
 
   while (1) {
     clearscreenbackground();
-    bool check_lost = false;
+    vText();
+    hText();
 
     // Update box positions according to their movement speeds
-    rover_position[0] += rover_position[2];
+    // Vertical
+    vertical_speed += gravity;
+    rover_position[3] = myRound(vertical_speed);
     rover_position[1] += rover_position[3];
+
+    // Horizontal
+    rover_position[2] = myRound(horizontal_speed);
+    rover_position[0] += rover_position[2];
 
     if ((rover_position[1] >= 0 && rover_position[1] <= 239)) {
       drawRover(rover_position[0], rover_position[1]);
     }
-    newLocation();
+
+    landingPlusBoundaryCheck();
     int input = keyboard();
 
     // Text -> Out of Bounds
@@ -9092,8 +9188,8 @@ int main() {
       typeNextLevelStart(str);
       rover_position[0] = x;
       rover_position[1] = y;
-      rover_position[2] = speed;
-      rover_position[3] = speed;
+      horizontal_speed = (double)speed;
+      vertical_speed = (double)speed;
       continue;
     }
 
@@ -9102,8 +9198,11 @@ int main() {
       if ((rover_position[1] >= 0 && rover_position[1] <= 239)) {
         drawFlame(rover_position[0], rover_position[1]);
       }
-      // Update box positions according to their movement speeds
-      rover_position[1] += -speed;
+      vertical_speed -= vertical_thrust;
+
+      if (vertical_speed == 0) {
+        vertical_speed = -1.4;
+      }
     }
 
     // Left
@@ -9111,8 +9210,7 @@ int main() {
       if ((rover_position[1] >= 0 && rover_position[1] <= 239)) {
         drawFlame(rover_position[0], rover_position[1]);
       }
-      // Update box positions according to their movement speeds
-      rover_position[0] += -speed;
+      horizontal_speed -= horizontal_thrust;
     }
 
     // Right
@@ -9120,8 +9218,27 @@ int main() {
       if ((rover_position[1] >= 0 && rover_position[1] <= 239)) {
         drawFlame(rover_position[0], rover_position[1]);
       }
-      // Update box positions according to their movement speeds
-      rover_position[0] += speed;
+      horizontal_speed += horizontal_thrust;
+    }
+
+    // Down
+    else if (input == 5) {
+      vertical_speed += vertical_thrust;
+      if (vertical_speed == 0) {
+        vertical_speed = 0.5;
+      }
+    }
+
+    if (vertical_speed < -2) {
+      vertical_speed = -2;
+    } else if (vertical_speed > 2) {
+      vertical_speed = 2;
+    }
+
+    if (horizontal_speed < -2) {
+      horizontal_speed = -2;
+    } else if (horizontal_speed > 2) {
+      horizontal_speed = 2;
     }
 
     wait_for_vsync();
